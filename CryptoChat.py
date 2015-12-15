@@ -1,6 +1,7 @@
 import Crypto
 from Crypto.PublicKey import RSA
 import cPickle as pickle
+import Chat
 
 class msg(object):
 	msg=''
@@ -11,32 +12,23 @@ class msg(object):
 		self.info=SenderInfo
 		self.sign=sign
 
-M_Private_key=None
-F_Public_key=None
-Myname=None
-
-def cryptoUI():
-	global M_Private_key
-	global F_Public_key
-	global Myname
+def cryptoUI(listensoc,RandomAdress):
 	Myname=raw_input('enter your name: ')
 	Friendname=raw_input('enter your friends name: ')
 	try:
 		M_Private_key=RSA.importKey(open("private_"+Myname+"_key.pem","r").read())
+		Chat.KeepAlive(listensoc,RandomAdress)	
 	except BaseException:
 		print "import failed!, can't import your private key "
 	try:
 		F_Public_key=RSA.importKey(open("public_"+Friendname+"_key.pem","r").read())
+		Chat.KeepAlive(listensoc,RandomAdress)	
 	except BaseException:
 		print "import failed!, can't import your friend's public key"
+	return (M_Private_key,F_Public_key,Myname)
 
 
-def encrypt_Txt_2_Obj_Str(tosend):
-	global txt
-	txt=tosend
-	global M_Private_key
-	global F_Public_key
-	global Myname
+def encrypt_Txt_2_Obj_Str(tosend,F_Public_key,M_Private_key,Myname):
 	(encstr,)=F_Public_key.encrypt(tosend,65)
 	#print "Encrypted form: \n"+ encstr+'\n' #debug
 	(signature,)=M_Private_key.sign(encstr,12)
@@ -44,9 +36,7 @@ def encrypt_Txt_2_Obj_Str(tosend):
 	msg2send_string=pickle.dumps(msg2send)
 	return msg2send_string
 
-def decrypt_Obj_Str_2_Txt(msgGot_string):
-	global F_Public_key
-	global M_Private_key
+def decrypt_Obj_Str_2_Txt(msgGot_string,F_Public_key,M_Private_key):
 	msgGot=pickle.loads(msgGot_string)
 	if F_Public_key.verify(msgGot.msg,(msgGot.sign,None)):
 		encstr=msgGot.msg

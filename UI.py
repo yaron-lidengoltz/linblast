@@ -8,9 +8,8 @@ def ui(ch,socket):
 	else:
 		uiMyserver(socket)
 
-def uiStunserver(socket):
-	global listensock
-	listensock=socket
+def uiStunserver(listensock):
+
 	local_port=int(raw_input("enter port to listen: "))
 	nat_type, Myip, port = stun.get_ip_info('0.0.0.0',local_port)
 	if Myip=="" or Myip=="none":
@@ -21,9 +20,8 @@ def uiStunserver(socket):
 		listensock.bind(listenAddr)
 		print "your ip is: '"+Myip+ "' and your port is: '"+str(port)+"'"
 
-def uiMyserver(socket):
-	global listensock
-	listensock=socket
+def uiMyserver(listensock):
+
 	listenport=int(raw_input("enter port to listen: "))
 	listenAddr=('0.0.0.0',listenport)
 	listensock.bind(listenAddr)

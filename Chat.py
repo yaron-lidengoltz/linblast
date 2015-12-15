@@ -5,19 +5,16 @@ import CryptoChat
 Max_Port_Length=5
 Buffer_Size=0x100
 Big_buffer_Size=0x2048*2
-def acceptReq(socket,close):
-	global listensoc
-	listensoc=socket
-	global toclose
-	toclose=close
+
+def acceptReq(listensoc,toclose,FriendKey,MyKey):
 
 	print "--Waiting for connection--"
 	try:
 		while toclose!=True:
 			data,PeerAddr=listensoc.recvfrom(Big_buffer_Size)	
 			if data.startswith('xxx'):
-				txtDecrypted,sender=CryptoChat.decrypt_Obj_Str_2_Txt(data[3:])
-				if txtDecrypted='q':
+				txtDecrypted,sender=CryptoChat.decrypt_Obj_Str_2_Txt(data[3:],FriendKey,MyKey)
+				if txtDecrypted=='q':
 					break
 				print sender+': '+txtDecrypted+"       -"+datetime.datetime.now().strftime("%H:%M-")
 
@@ -26,13 +23,8 @@ def acceptReq(socket,close):
 		print "--Connection closed--"
 
 
-def sendjunk(socket,addr,close):
-	global listensoc
-	listensoc=socket
-	global PeerAddr
-	PeerAddr=addr
-	global toclose
-	toclose=close
+def sendjunk(listensoc,PeerAddr,toclose):
+
 	while toclose!=True:
 		listensoc.sendto(b'hi',PeerAddr)
 		time.sleep(0.3)
@@ -41,11 +33,7 @@ def sendjunk(socket,addr,close):
 			break
 
 
-def sendUsr(socket,addr):
-	global listensoc
-	listensoc=socket
-	global PeerAddr
-	PeerAddr=addr
+def sendUsr(listensoc,PeerAddr,FriendKey,MyKey,Myname):
 
 	print "sending to:  "+str(PeerAddr)
 	print "--Enter what to send, q to quit--"
@@ -53,7 +41,7 @@ def sendUsr(socket,addr):
 		tosend=raw_input()
 		if tosend:
 			try:
-				encInput=CryptoChat.encrypt_Txt_2_Obj_Str(tosend)
+				encInput=CryptoChat.encrypt_Txt_2_Obj_Str(tosend,FriendKey,MyKey,Myname)
 			except BaseException:
 				print 'bad encryption'
 			msg='xxx'+encInput
@@ -62,28 +50,34 @@ def sendUsr(socket,addr):
 			print "--Send Connection closed by YOU!--"
 			break;
 
-def subc(subcs,socket):
-	global listensoc
-	listensoc=socket
+def subc(subcs,listensoc,RandomAdress):
+
 	got_answer=False
 	if subcs=='y':
 		listensoc.sendto('1'.encode('utf-8'),(raw_input("enter ip of connector"),int(raw_input("enter connector port"))))
-		while got_answer=False:
+		while got_answer==False:
 			data,ConAddr=listensoc.recvfrom(Buffer_Size)
 			strdata=data.decode('utf-8')
 			if len(strdata)>Max_Port_Length:
 				print strdata
 				got_answer=True
+	else:
+		KeepAlive(listensoc,RandomAdress)
 
-def getClient(gets,socket):
-	global listensoc
-	listensoc=socket
+def getClient(gets,listensoc,RandomAdress):
+
 	got_answer=False
 	if gets=='y':
 		cid=raw_input("Enter Client id to get info of:")
 		listensoc.sendto(('get_client '+cid).encode('utf-8'),(raw_input("enter ip of connector"),int(raw_input("enter connector port"))))
-		while got_answer=False:
+		while got_answer==False:
 			data,ConAddr=listensoc.recvfrom(Buffer_Size)
 			if len(data.decode('utf-8'))>Max_Port_Length:
 					print data.decode('utf-8')
 					got_answer=True
+	else:
+		KeepAlive(listensoc,RandomAdress)
+		
+
+def KeepAlive(MySocket,RandomAdress):
+	MySocket.sendto(b'KeepAlive',RandomAdress)
