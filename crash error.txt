@@ -1,0 +1,29 @@
+pi@raspberrypi ~/linblast $ sudo python main.py
+Choose how to setup a connection enter 'm' for Myserver/ 'p' for public server  p
+enter port to listen: 1237
+your ip is: '89.139.130.186' and your port is: '1024'
+Do you wish to send your info to data base? 'y'/'n' n
+Do you wish to ask for info from the data base? 'y'/'n' n
+Enter peer ip:52.29.82.223
+enter port to connect: 1236
+enter your name: dan
+enter your friends name: joe
+--Waiting for connection--
+ sending to:  ('52.29.82.223', 1236)
+--Enter what to send, q to quit--
+hi
+hi
+Message is FAKE!!!
+--Connection closed--
+Exception in thread Thread-2:
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/threading.py", line 810, in __bootstrap_inner
+    self.run()
+  File "/usr/lib/python2.7/threading.py", line 763, in run
+    self.__target(*self.__args, **self.__kwargs)
+  File "/home/pi/linblast/Chat.py", line 16, in acceptReq
+    txtDecrypted,sender=CryptoChat.decrypt_Obj_Str_2_Txt(data[3:],FriendKey,MyKey)
+TypeError: 'NoneType' object is not iterable
+
+
+--Send Connection closed by YOU!--
