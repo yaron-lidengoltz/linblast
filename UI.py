@@ -18,7 +18,7 @@ def uiStunserver(listensock):
 	else:
 		listenAddr=('0.0.0.0',local_port)
 		listensock.bind(listenAddr)
-		print "your ip is: '"+Myip+ "' and your port is: '"+str(port)+"'"
+		print '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n'+"IP: "+Myip+ " Port: "+str(port)+"\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
 
 def uiMyserver(listensock):
 
