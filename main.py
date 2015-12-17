@@ -13,6 +13,7 @@ PeerIp=''
 port=0
 PeerAddr=('',0)
 
+
 listensoc=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 
 UI.ui(raw_input("Choose how to setup a connection enter 'm' for Myserver/ 'p' for public server  "),listensoc) # if added more option add description to here
@@ -30,3 +31,4 @@ tjunk.start()
 tlisten=threading.Thread(target=Chat.acceptReq,args=(listensoc,F_Public_key,M_Private_key,Myname))
 tlisten.start()
 Chat.sendUsr(listensoc,PeerAddr,F_Public_key,M_Private_key,Myname)
+

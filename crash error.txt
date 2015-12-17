@@ -1,29 +1,45 @@
-pi@raspberrypi ~/linblast $ sudo python main.py
+ubuntu@ip-172-31-7-138:~/linblast$ python main.py
 Choose how to setup a connection enter 'm' for Myserver/ 'p' for public server  p
-enter port to listen: 1237
-your ip is: '89.139.130.186' and your port is: '1024'
+enter port to listen: 1254
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+IP: 52.29.82.223 Port: 1254
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Do you wish to send your info to data base? 'y'/'n' n
 Do you wish to ask for info from the data base? 'y'/'n' n
-Enter peer ip:52.29.82.223
-enter port to connect: 1236
-enter your name: dan
-enter your friends name: joe
+Enter peer ip:217.132.50.15
+enter port to connect: 1024
+enter your name: joe
+enter your friends name: dan
+sending to:  ('217.132.50.15', 1024)
+--You can start chating, press Enter to quit--
 --Waiting for connection--
- sending to:  ('52.29.82.223', 1236)
---Enter what to send, q to quit--
-hi
-hi
-Message is FAKE!!!
---Connection closed--
-Exception in thread Thread-2:
-Traceback (most recent call last):
-  File "/usr/lib/python2.7/threading.py", line 810, in __bootstrap_inner
-    self.run()
-  File "/usr/lib/python2.7/threading.py", line 763, in run
-    self.__target(*self.__args, **self.__kwargs)
-  File "/home/pi/linblast/Chat.py", line 16, in acceptReq
-    txtDecrypted,sender=CryptoChat.decrypt_Obj_Str_2_Txt(data[3:],FriendKey,MyKey)
-TypeError: 'NoneType' object is not iterable
+#deleted bullshit #
+dan: llfggkf       -10:24-
+dan: jgkfmor       -10:24-
+hi man
+i have secrets
+sdfsdklf
+so many of them
+dfgkjdflgjdfk
+Resending: dfgkjdflgjdfk ...
+Resending: dfgkjdflgjdfk ...
+Resending: dfgkjdflgjdfk ...
+Resending: dfgkjdflgjdfk ...
+Resending: dfgkjdflgjdfk ...
+Resending: dfgkjdflgjdfk ...
+Resending: dfgkjdflgjdfk ...
+Resending: dfgkjdflgjdfk ...
+Resending: dfgkjdflgjdfk ...
+Resending: dfgkjdflgjdfk ...
+Resending: dfgkjdflgjdfk ...
+Resending: dfgkjdflgjdfk ...
+Resending: dfgkjdflgjdfk ...
+Resending: dfgkjdflgjdfk ...
+Resending: dfgkjdflgjdfk ...
+Resending: dfgkjdflgjdfk ...
+Resending: dfgkjdflgjdfk ...
+Resending: dfgkjdflgjdfk ...
+Resending: dfgkjdflgjdfk ...
+[1]+  Stopped                 python main.py
+ubuntu@ip-172-31-7-138:~/linblast$
 
-
---Send Connection closed by YOU!--

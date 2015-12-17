@@ -63,8 +63,10 @@ def sendUsr(listensoc, PeerAddr, FriendKey, MyKey, Myname):
 			listensoc.sendto(msg, PeerAddr)  # remember to change
 		else:
 			toClose = True
+			encInput = CryptoChat.encrypt_Txt_2_Obj_Str('q', FriendKey, MyKey, Myname)
+			msg = Prolouge + encInput
+			listensoc.sendto(msg, PeerAddr) 
 			print "--Send Connection closed by YOU!--"
-			exit(0)
 
 def ReqResend(listensoc, PeerAddr, FriendKey, MyKey, Myname):
 	encInput = CryptoChat.encrypt_Txt_2_Obj_Str(ResendRequest, FriendKey, MyKey, Myname)
@@ -72,6 +74,7 @@ def ReqResend(listensoc, PeerAddr, FriendKey, MyKey, Myname):
 	listensoc.sendto(msg, PeerAddr)
 
 def ResendMsg(listensoc, PeerAddr, FriendKey, MyKey, Myname,ToSendAgain):
+	print 'Resending: '+ToSendAgain+' ...'
 	encInput = CryptoChat.encrypt_Txt_2_Obj_Str(ToSendAgain, FriendKey, MyKey, Myname)
 	msg = Prolouge + encInput
 	listensoc.sendto(msg, PeerAddr)

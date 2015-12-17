@@ -1,0 +1,47 @@
+pi@raspberrypi ~/linblast $ python main.py
+Choose how to setup a connection enter 'm' for Myserver/ 'p' for public server  p
+enter port to listen: 6546
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+IP: 217.132.50.15 Port: 1024
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Do you wish to send your info to data base? 'y'/'n' n
+Do you wish to ask for info from the data base? 'y'/'n' n
+Enter peer ip:52.29.82.223
+enter port to connect: 1254
+enter your name: dan
+enter your friends name: joe
+--Waiting for connection--
+ sending to:  ('52.29.82.223', 1254)
+--You can start chating, press Enter to quit--
+llfggkf
+jgkfmor
+joe: hi man       -10:25-
+joe: i have secrets       -10:25-
+joe: so many of them       -10:25-
+the message below is FAKE!!!
+Spoofer: Message is fake       -10:25-
+the message below is FAKE!!!
+Spoofer: Message is fake       -10:25-
+the message below is FAKE!!!
+Spoofer: Message is fake       -10:25-
+the message below is FAKE!!!
+Spoofer: Message is fake       -10:25-
+the message below is FAKE!!!
+Spoofer: Message is fake       -10:25-
+the message below is FAKE!!!
+Spoofer: Message is fake       -10:25-
+the message below is FAKE!!!
+Spoofer: Message is fake       -10:25-
+the message below is FAKE!!!
+Spoofer: Message is fake       -10:25-
+the message below is FAKE!!!
+Spoofer: Message is fake       -10:25-
+the message below is FAKE!!!
+Spoofer: Message is fake       -10:25-
+the message below is FAKE!!!
+Spoofer: Message is fake       -10:25-
+the message below is FAKE!!!
+Spoofer: Message is fake       -10:25-
+the message below is FAKE!!!
+[1]+  Stopped                 python main.py
+pi@raspberrypi ~/linblast $
