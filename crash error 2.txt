@@ -1,47 +1,227 @@
-pi@raspberrypi ~/linblast $ python main.py
+login as: ubuntu
+Authenticating with public key "imported-openssh-key"
+Welcome to Ubuntu 14.04.3 LTS (GNU/Linux 3.13.0-48-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com/
+
+  System information as of Thu Dec 17 18:03:32 UTC 2015
+
+  System load:  0.0               Processes:           108
+  Usage of /:   15.3% of 7.74GB   Users logged in:     0
+  Memory usage: 10%               IP address for eth0: 172.31.7.138
+  Swap usage:   0%
+
+  Graph this data and manage this system at:
+    https://landscape.canonical.com/
+
+  Get cloud support with Ubuntu Advantage Cloud Guest:
+    http://www.ubuntu.com/business/services/cloud
+
+20 packages can be updated.
+20 updates are security updates.
+
+
+*** System restart required ***
+Last login: Thu Dec 17 10:20:43 2015 from 195.62.18.177
+ubuntu@ip-172-31-7-138:~$ clear
+ubuntu@ip-172-31-7-138:~$ cd linblast/
+ubuntu@ip-172-31-7-138:~/linblast$ python main.py
+Choose how to setup a connection enter 'm' for Myserver/ 'p' for public server  p
+enter port to listen: 4565
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+IP: 52.29.82.223 Port: 4565
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+enter your name: dan
+enter your friends name: joe
+Do you wish to send your info to data base? 'y'/'n' n
+Do you wish to ask for info from the data base? 'y'/'n' n
+Enter peer ip:217.132.50.15
+enter port to connect: 1024
+sending to:  ('217.132.50.15', 1024)
+--You can start chating, press Enter to quit--
+--Waiting for connection--
+hi
+
+--Send Connection closed by YOU!--
+keep alive connection sending stopped
+--Listening Connection closed by you--
+ubuntu@ip-172-31-7-138:~/linblast$ python main.py
+Choose how to setup a connection enter 'm' for Myserver/ 'p' for public server  p
+enter port to listen: 456
+Traceback (most recent call last):
+  File "main.py", line 7, in <module>
+    UI.ui(raw_input("Choose how to setup a connection enter 'm' for Myserver/ 'p' for public server  "),listensoc) # if added more option add description to here
+  File "/home/ubuntu/linblast/UI.py", line 7, in ui
+    uiStunserver(socket)
+  File "/home/ubuntu/linblast/UI.py", line 14, in uiStunserver
+    nat_type, Myip, port = stun.get_ip_info('0.0.0.0',local_port)
+  File "/usr/local/lib/python2.7/dist-packages/stun/__init__.py", line 251, in get_ip_info
+    s.bind((source_ip, source_port))
+  File "/usr/lib/python2.7/socket.py", line 224, in meth
+    return getattr(self._sock,name)(*args)
+socket.error: [Errno 13] Permission denied
+ubuntu@ip-172-31-7-138:~/linblast$ clear
+ubuntu@ip-172-31-7-138:~/linblast$ python main.py
 Choose how to setup a connection enter 'm' for Myserver/ 'p' for public server  p
 enter port to listen: 6546
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-IP: 217.132.50.15 Port: 1024
+IP: 52.29.82.223 Port: 6546
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Do you wish to send your info to data base? 'y'/'n' n
-Do you wish to ask for info from the data base? 'y'/'n' n
-Enter peer ip:52.29.82.223
-enter port to connect: 1254
 enter your name: dan
 enter your friends name: joe
---Waiting for connection--
- sending to:  ('52.29.82.223', 1254)
+Do you wish to send your info to data base? 'y'/'n' n
+Do you wish to ask for info from the data base? 'y'/'n' n
+Enter peer ip:217.132.50.15
+enter port to connect: 1024
+sending to:  ('217.132.50.15', 1024)
 --You can start chating, press Enter to quit--
-llfggkf
-jgkfmor
-joe: hi man       -10:25-
-joe: i have secrets       -10:25-
-joe: so many of them       -10:25-
+--Waiting for connection--
+hi
+joe: hello       -18:08-
 the message below is FAKE!!!
-Spoofer: Message is fake       -10:25-
-the message below is FAKE!!!
-Spoofer: Message is fake       -10:25-
-the message below is FAKE!!!
-Spoofer: Message is fake       -10:25-
-the message below is FAKE!!!
-Spoofer: Message is fake       -10:25-
-the message below is FAKE!!!
-Spoofer: Message is fake       -10:25-
-the message below is FAKE!!!
-Spoofer: Message is fake       -10:25-
-the message below is FAKE!!!
-Spoofer: Message is fake       -10:25-
-the message below is FAKE!!!
-Spoofer: Message is fake       -10:25-
-the message below is FAKE!!!
-Spoofer: Message is fake       -10:25-
-the message below is FAKE!!!
-Spoofer: Message is fake       -10:25-
-the message below is FAKE!!!
-Spoofer: Message is fake       -10:25-
-the message below is FAKE!!!
-Spoofer: Message is fake       -10:25-
-the message below is FAKE!!!
+Exception in thread Thread-3:
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/threading.py", line 810, in __bootstrap_inner
+    self.run()
+  File "/usr/lib/python2.7/threading.py", line 763, in run
+    self.__target(*self.__args, **self.__kwargs)
+  File "/home/ubuntu/linblast/Chat.py", line 48, in acceptReq
+    txtDecrypted, sender = self.CryptoRef.decrypt_Obj_Str_2_Txt(data[3:])
+  File "/home/ubuntu/linblast/CryptoChat.py", line 49, in decrypt_Obj_Str_2_Txt
+    Chat.ReqResend()
+AttributeError: 'module' object has no attribute 'ReqResend'
+
+^Z
 [1]+  Stopped                 python main.py
-pi@raspberrypi ~/linblast $
+ubuntu@ip-172-31-7-138:~/linblast$ clear
+ubuntu@ip-172-31-7-138:~/linblast$ python main.py
+Choose how to setup a connection enter 'm' for Myserver/ 'p' for public server  p
+enter port to listen: 1645
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+IP: 52.29.82.223 Port: 1645
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+enter your name: dan
+enter your friends name: joe
+Do you wish to send your info to data base? 'y'/'n' n
+Do you wish to ask for info from the data base? 'y'/'n' n
+Enter peer ip:217.132.50.15
+enter port to connect: 1024
+sending to:  ('217.132.50.15', 1024)
+--You can start chating, press Enter to quit--
+--Waiting for connection--
+hi
+joe: hello       -18:13-
+joe: asd       -18:13-
+joe: dfg       -18:13-
+joe: fgh       -18:13-
+joe: tyj       -18:13-
+joe: uim       -18:13-
+joe: hjm       -18:13-
+joe: fas       -18:13-
+joe: dfg       -18:13-
+wowowowowowowow
+joe: dfg       -18:13-
+joe: df        -18:13-
+joe: dfgfdg       -18:13-
+joe: ytj       -18:13-
+joe: dfhn       -18:13-
+joe: cvhh       -18:13-
+joe: sdf        -18:13-
+joe: rth       -18:13-
+joe: sdf        -18:13-
+joe: rydhnd fsb sb        -18:13-
+joe: dkdkd       -18:13-
+joe: dkdkdk       -18:13-
+joe: sdfsdf       -18:13-
+joe: sdfsdfsdf       -18:13-
+hi
+hj
+hj
+hj
+hj
+fgh
+dt
+the message below is FAKE!!!
+Exception in thread Thread-3:
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/threading.py", line 810, in __bootstrap_inner
+    self.run()
+  File "/usr/lib/python2.7/threading.py", line 763, in run
+    self.__target(*self.__args, **self.__kwargs)
+  File "/home/ubuntu/linblast/Chat.py", line 48, in acceptReq
+    txtDecrypted, sender = self.CryptoRef.decrypt_Obj_Str_2_Txt(data[3:])
+  File "/home/ubuntu/linblast/CryptoChat.py", line 49, in decrypt_Obj_Str_2_Txt
+    Chat.ReqResend()
+AttributeError: 'module' object has no attribute 'ReqResend'
+
+^CTraceback (most recent call last):
+  File "main.py", line 9, in <module>
+    chatRef.Execute()
+  File "/home/ubuntu/linblast/Chat.py", line 37, in Execute
+    self.sendUsr()
+  File "/home/ubuntu/linblast/Chat.py", line 70, in sendUsr
+    toSend = raw_input()
+ubuntu@ip-172-31-7-138:~/linblast$ python main.py
+Choose how to setup a connection enter 'm' for Myserver/ 'p' for public server  p
+enter port to listen: 1236
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+IP: 52.29.82.223 Port: 1236
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+enter your name: dan
+enter your friends name: joe
+Do you wish to send your info to data base? 'y'/'n' n
+Do you wish to ask for info from the data base? 'y'/'n' n
+Enter peer ip:217.132.50.15
+enter port to connect: 1024
+sending to:  ('217.132.50.15', 1024)
+--You can start chating, press Enter to quit--
+--Waiting for connection--
+hi
+joe: hello       -18:24-
+joe: where are you       -18:24-
+joe: how are you       -18:24-
+joe: good good       -18:24-
+joe: hi       -18:24-
+the message below is FAKE!!!
+Spoofer: Message is fake       -18:24-
+the message below is FAKE!!!
+Spoofer: Message is fake       -18:24-
+the message below is FAKE!!!
+Spoofer: Message is fake       -18:24-
+the message below is FAKE!!!
+Spoofer: Message is fake       -18:24-
+the message below is FAKE!!!
+Spoofer: Message is fake       -18:24-
+the message below is FAKE!!!
+Spoofer: Message is fake       -18:24-
+the message below is FAKE!!!
+Spoofer: Message is fake       -18:24-
+the message below is FAKE!!!
+Spoofer: Message is fake       -18:24-
+the message below is FAKE!!!
+Spoofer: Message is fake       -18:24-
+the message below is FAKE!!!
+Spoofer: Message is fake       -18:24-
+the message below is FAKE!!!
+Spoofer: Message is fake       -18:25-
+the message below is FAKE!!!
+Spoofer: Message is fake       -18:25-
+the message below is FAKE!!!
+Spoofer: Message is fake       -18:25-
+the message below is FAKE!!!
+Spoofer: Message is fake       -18:25-
+the message below is FAKE!!!
+Spoofer: Message is fake       -18:25-
+the message below is FAKE!!!
+Spoofer: Message is fake       -18:25-
+the message below is FAKE!!!
+Spoofer: Message is fake       -18:25-
+the message below is FAKE!!!
+Spoofer: Message is fake       -18:25-
+the message below is FAKE!!!
+Spoofer: Message is fake       -18:25-
+--Listening Connection closed by you--
+
+--Send Connection closed by YOU!--
+keep alive connection sending stopped
+ubuntu@ip-172-31-7-138:~/linblast$
