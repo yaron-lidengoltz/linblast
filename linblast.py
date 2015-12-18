@@ -138,7 +138,7 @@ def encrypt_Txt_2_Obj_Str():
 	return msg2send_string
 
 def decrypt_Obj_Str_2_Txt(msgGot_string):
-	global F_Public_key
+	global  F_Public_key
 	global M_Private_key
 	msgGot=pickle.loads(msgGot_string)
 	if F_Public_key.verify(msgGot.msg,(msgGot.sign,None)):

@@ -1,12 +1,13 @@
-import socket
 import Chat
-import UI
+from ExternalServer import ExternalServer
 
-listensoc=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+TEST = True
 
-UI.ui(raw_input("Choose how to setup a connection enter 'm' for Myserver/ 'p' for public server  "),listensoc) # if added more option add description to here
-chatRef=Chat.ChatClass(listensoc)
-chatRef.Execute()
-
-
-
+external_server = ExternalServer()
+chatRef = Chat.Chat(external_server)
+if not TEST:
+	external_server.connect_to_server()
+	chatRef.execute()
+else:
+	external_server.test_flight()
+	chatRef.execute_test()

@@ -1,123 +1,163 @@
-import time
-import datetime
+import logging
 import threading
+import time
+
 import CryptoChat
 
-Max_Port_Length = 5
-Buffer_Size = 0x100
-Big_buffer_Size = 0x2048 * 2
-Junk=b'hi'
-ResendRequest='^_^Resend^_^' #a string that represents a request to resend
-Prolouge='xxx'
-RandomAdress=('8.8.8.8',80)
+MAX_PORT_LENGTH = 5
+BUFFER_SIZE = 0x100
+BIG_BUFFER_SIZE = 0x2048 * 2
 
-class ChatClass(object):
-	CryptoRef=None
-	listensoc=None
-	PeerAddr=None
-	toClose=False
-	LastSent=''
-	toSend=None
-	def __init__(self, Socket):
-		self.listensoc = Socket
-		tKeepAlive=threading.Thread(target=self.KeepAlive,args=())
-		tKeepAlive.start()
-		self.CryptoRef=CryptoChat.CryptoClass()
-	def Execute(self):
+RESEND_REQUEST_STRING = '^_^Resend^_^'  # a string that represents a request to resend
+PROLOGUE = 'xxx'
+MACHINE_PROLOGUE = 'YYY'
+JUNK_STRING = 'hi'
+RANDOM_ADDRESS = ('8.8.8.8', 80)
 
-		self.subc(raw_input("Do you wish to send your info to data base? 'y'/'n' "))
-		self.getClient(raw_input("Do you wish to ask for info from the data base? 'y'/'n' "))
-		PeerIp=raw_input("Enter peer ip:")
-		port=int(raw_input("enter port to connect: "))
-		self.PeerAddr=(PeerIp,port)
-		tjunk=threading.Thread(target=self.sendjunk,args=())
-		tjunk.start()
-		tlisten=threading.Thread(target=self.acceptReq,args=())
-		tlisten.start()
-		self.sendUsr()
-	def acceptReq(self):
-		print "--Waiting for connection--"
-		while not self.toClose:
+log = logging.getLogger(__name__)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch = logging.StreamHandler()
+ch.setFormatter(formatter)
+log.setLevel(logging.DEBUG)
+log.addHandler(ch)
+
+
+
+class Chat(object):
+	def __init__(self, server):
+
+		self.threads = []
+		self.keepAlive_thread = self.init_thread(self.keep_alive, ())
+		self.listen_thread = self.init_thread(self.accept_requests, ())
+		self.junk_thread = self.init_thread(self.send_junk, ())
+
+		self.peer_Address = None
+		self.toClose = threading.Event()
+		self.lastMessage = ''
+		self.toSend = None
+		self.server = server
+		self.listen_socket = server.linsocket
+		self.CryptoRef = CryptoChat.CryptoClass()
+
+	def init_thread(self, method, args):
+		holder = threading.Thread(target=method, args=args)
+		holder.daemon = True
+		self.threads.append(holder)
+		return holder
+
+	def execute_test(self):
+		self.peer_Address = (self.server.my_ip, 5555 if self.server.user == 'a' else 6666)
+		self.keepAlive_thread.start()
+		self.CryptoRef.test_flight(self.server.user)
+		self.start_threads()
+
+	def execute(self):
+		self.keepAlive_thread.start()
+		self.CryptoRef.init_chat()
+		self.send_user_details_to_db()
+		self.get_phone_book_from_db()
+		peer_ip = raw_input("Enter peer ip:")
+		port = int(raw_input("enter port to connect: "))
+		self.peer_Address = (peer_ip, port)
+		self.start_threads()
+
+	def start_threads(self):
+		self.junk_thread.start()
+		self.listen_thread.start()
+		self.start_chat()
+
+	def accept_requests(self):
+		log.info('--Waiting for connection--')
+		while not self.toClose.isSet():
 			try:
-				data, PeerAddr = self.listensoc.recvfrom(Big_buffer_Size)
-			except BaseException:
-				self.toClose=True
-				print "--Connection closed by peer--"
-				exit(0)
-			if data.startswith(Prolouge):
-				txtDecrypted, sender = self.CryptoRef.decrypt_Obj_Str_2_Txt(data[3:],self)
-				if txtDecrypted == 'q':
+				data, peer_address = self.listen_socket.recvfrom(BIG_BUFFER_SIZE)
+			except Exception, e:
+				log.error('Exception caught', e)
+				log.error('--Connection closed by peer--')
+				self.toClose.set()
+				break
+
+			if data.startswith(MACHINE_PROLOGUE):
+				data, sender = self.CryptoRef.decrypt_Obj_Str_2_Txt(data[3:], self)
+				if data == 'q':
+					log.info('%s Asked to quit!' % sender)
 					break
-				if txtDecrypted==ResendRequest:
-					self.ResendMsg()
+				if data == JUNK_STRING:
 					continue
-				print sender + ': ' + txtDecrypted + "       -" + datetime.datetime.now().strftime("%H:%M-")	
-		print "--Listening Connection closed by you--"	
-		exit(0)
 
-	def sendjunk(self):
-		while not self.toClose:
-			self.listensoc.sendto(Junk, self.PeerAddr)
-			time.sleep(0.3)
-		print "keep alive connection sending stopped"
-		exit(0)
+			elif data.startswith(PROLOGUE):
+				data, sender = self.CryptoRef.decrypt_Obj_Str_2_Txt(data[3:], self)
 
-
-	def sendUsr(self):
-		print "sending to:  " + str(self.PeerAddr)
-		print "--You can start chating, press Enter to quit--"
-		while not self.toClose:
-			toSend = raw_input()
-			if toSend != '':
-#				try:
-				encInput = self.CryptoRef.encrypt_Txt_2_Obj_Str(toSend)
-#				except BaseException:
-#					print 'bad encryption'
-				self.LastSent=toSend
-				msg = Prolouge + encInput
-				self.listensoc.sendto(msg, self.PeerAddr)  # remember to change
+				if data == RESEND_REQUEST_STRING:
+					log.info('%s asked for a resend' % sender)
+					self.resend_message()
+					continue
+				log.info('%s: %s' % (sender, data))
 			else:
-				self.toClose = True
-				encInput = self.CryptoRef.encrypt_Txt_2_Obj_Str('q')
-				msg = Prolouge + encInput
-				self.listensoc.sendto(msg, self.PeerAddr) 
-				print "--Send Connection closed by YOU!--"
+				log.warn('Got some weird message %s' % data)
+		log.info('--Listening Connection closed by you--')
 
-	def ReqResend(self):
-		encInput = self.CryptoRef.encrypt_Txt_2_Obj_Str(ResendRequest)
-		msg = Prolouge + encInput
-		self.listensoc.sendto(msg, self.PeerAddr)
+	def send_junk(self):
+		junk = MACHINE_PROLOGUE + self.CryptoRef.encrypt_Txt_2_Obj_Str(JUNK_STRING)
+		while not self.toClose.isSet():
+			self.listen_socket.sendto(junk, self.peer_Address)
+			time.sleep(0.9)
+		log.info('keep alive connection sending stopped')
 
-	def ResendMsg(self):
-		print 'Resending: '+self.LastSent+' ...'
-		encInput = self.CryptoRef.encrypt_Txt_2_Obj_Str(self.LastSent)
-		msg = Prolouge + encInput
-		self.listensoc.sendto(msg, self.PeerAddr)
+	def start_chat(self):
+		log.info('sending to: %s' % str(self.peer_Address))
+		log.info('--You can start chatting, press ctrl c to quit--')
+		while not self.toClose.isSet():
+			try:
+				txt_to_send = raw_input()
+				if txt_to_send != '':
+					encrypted_txt = self.CryptoRef.encrypt_Txt_2_Obj_Str(txt_to_send)
+					self.lastMessage = txt_to_send
+					msg = PROLOGUE + encrypted_txt
+					self.listen_socket.sendto(msg, self.peer_Address)
+			except Exception, e:
+				self.toClose.set()
+				encrypted_txt = self.CryptoRef.encrypt_Txt_2_Obj_Str('q')
+				msg = MACHINE_PROLOGUE + encrypted_txt
+				self.listen_socket.sendto(msg, self.peer_Address)
+				log.info('--Send Connection closed by YOU!--')
 
-	def subc(self,subcs):
+	def request_resend(self):
+		msg = PROLOGUE + self.CryptoRef.encrypt_Txt_2_Obj_Str(RESEND_REQUEST_STRING)
+		self.listen_socket.sendto(msg, self.peer_Address)
+
+	def resend_message(self):
+		log.info('Resending: %s' % self.lastMessage)
+		msg = PROLOGUE + self.CryptoRef.encrypt_Txt_2_Obj_Str(self.lastMessage)
+		self.listen_socket.sendto(msg, self.peer_Address)
+
+	def send_user_details_to_db(self):
 		got_answer = False
-		if subcs == 'y':
-			self.listensoc.sendto('1'.encode('utf-8'),(raw_input("enter ip of connector"), int(raw_input("enter connector port"))))
+		if raw_input("Do you wish to send your info to data base? 'y'/'n' ") == 'y':
+			# !-- fix it by yourself
+			self.listen_socket.sendto('1'.encode('utf-8'),
+			                          (raw_input("enter ip of connector"), int(raw_input("enter connector port"))))
 			while not got_answer:
-				data, ConAddr = self.listensoc.recvfrom(Buffer_Size)
+				data, ConAddr = self.listen_socket.recvfrom(BUFFER_SIZE)
 				strdata = data.decode('utf-8')
-				if len(strdata) > Max_Port_Length:
+				if len(strdata) > MAX_PORT_LENGTH:
 					print strdata
 					got_answer = True
 
-
-	def getClient(self,gets):
+	def get_phone_book_from_db(self):
 		got_answer = False
-		if gets == 'y':
+		if raw_input("Do you wish to ask for info from the data base? 'y'/'n' ") == 'y':
+			# !-- fix it by yourself
 			cid = raw_input("Enter Client id to get info of:")
-			self.listensoc.sendto(('get_client ' + cid).encode('utf-8'), (raw_input("enter ip of connector"), int(raw_input("enter connector port"))))
+			self.listen_socket.sendto(('get_client ' + cid).encode('utf-8'),
+			                          (raw_input("enter ip of connector"), int(raw_input("enter connector port"))))
 			while not got_answer:
-				data, ConAddr =self.listensoc.recvfrom(Buffer_Size)
-				if len(data.decode('utf-8')) > Max_Port_Length:
+				data, ConAddr = self.listen_socket.recvfrom(BUFFER_SIZE)
+				if len(data.decode('utf-8')) > MAX_PORT_LENGTH:
 					print data.decode('utf-8')
 					got_answer = True
 
-	def KeepAlive(self):
-		for i in range(99):
-			self.listensoc.sendto(b'KeepAlive', RandomAdress)
+	def keep_alive(self):
+		while not self.toClose.isSet():
+			self.listen_socket.sendto(b'KeepAlive', RANDOM_ADDRESS)
 			time.sleep(0.5)
