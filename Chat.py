@@ -1,13 +1,14 @@
 import logging
 import threading
 import time
-
+import cPickle as pickle
 import CryptoChat
 
 MAX_PORT_LENGTH = 5
 BUFFER_SIZE = 0x100
 BIG_BUFFER_SIZE = 0x2048 * 2
 
+SET_DB_STRING='public:'
 RESEND_REQUEST_STRING = '^_^Resend^_^'  # a string that represents a request to resend
 PROLOGUE = 'xxx'
 MACHINE_PROLOGUE = 'YYY'
@@ -21,15 +22,26 @@ ch.setFormatter(formatter)
 log.setLevel(logging.DEBUG)
 log.addHandler(ch)
 
-
+class User(object):
+	
+	def __init__(self):
+		self.name =None
+		self.adress = None
+		self.public_key =None
+		self.timestamp=None
+	def initME(self,name,adress,public_key,timestamp):
+		self.name = name
+		self.adress = adress
+		self.public_key = public_key
+		self.timestamp=timestamp
 
 class Chat(object):
 	def __init__(self, server):
-
 		self.threads = []
 		self.keepAlive_thread = self.init_thread(self.keep_alive, ())
 		self.listen_thread = self.init_thread(self.accept_requests, ())
 		self.junk_thread = self.init_thread(self.send_junk, ())
+		self.SendPhoneBook_thread= self.init_thread(self.SendPhoneBook, ())
 
 		self.peer_Address = None
 		self.toClose = threading.Event()
@@ -38,6 +50,8 @@ class Chat(object):
 		self.server = server
 		self.listen_socket = server.linsocket
 		self.CryptoRef = CryptoChat.CryptoClass()
+		self.User_Me=User()
+		self.PhoneBook=None
 
 	def init_thread(self, method, args):
 		holder = threading.Thread(target=method, args=args)
@@ -47,13 +61,18 @@ class Chat(object):
 
 	def execute_test(self):
 		self.peer_Address = (self.server.my_ip, 5555 if self.server.user == 'a' else 6666)
+		time.sleep(5)
 		self.keepAlive_thread.start()
 		self.CryptoRef.test_flight(self.server.user)
+		self.User_Me.initME(self.CryptoRef.my_name,self.server.listen_address,self.CryptoRef.M_Public_key,time.time())
+		self.PhoneBook={self.User_Me.name:self.User_Me}
 		self.start_threads()
 
 	def execute(self):
 		self.keepAlive_thread.start()
 		self.CryptoRef.init_chat()
+		self.User_Me.initME(self.CryptoRef.my_name,self.server.listen_address,self.CryptoRef.M_Public_key,time.time())
+		self.PhoneBook={self.User_Me.name:self.User_Me}
 		self.send_user_details_to_db()
 		self.get_phone_book_from_db()
 		peer_ip = raw_input("Enter peer ip:")
@@ -64,7 +83,9 @@ class Chat(object):
 	def start_threads(self):
 		self.junk_thread.start()
 		self.listen_thread.start()
+		self.SendPhoneBook_thread.start()
 		self.start_chat()
+
 
 	def accept_requests(self):
 		log.info('--Waiting for connection--')
@@ -72,16 +93,21 @@ class Chat(object):
 			try:
 				data, peer_address = self.listen_socket.recvfrom(BIG_BUFFER_SIZE)
 			except Exception, e:
-				log.error('Exception caught', e)
+				log.error('Exception caught')
 				log.error('--Connection closed by peer--')
 				self.toClose.set()
 				break
 
 			if data.startswith(MACHINE_PROLOGUE):
 				data, sender = self.CryptoRef.decrypt_Obj_Str_2_Txt(data[3:], self)
-				if data == 'q':
+				if data == 'q':           #q=quit
 					log.info('%s Asked to quit!' % sender)
 					break
+				if data.startswith('p'):         #p=phonebook
+					log.info('%s sent you his phonebook!' % sender)
+					data=data[1:]         #cutting the "p"
+					self.UpdatePhoneBook(pickle.loads(data))
+					print self.PhoneBook
 				if data == JUNK_STRING:
 					continue
 
@@ -95,7 +121,7 @@ class Chat(object):
 				log.info('%s: %s' % (sender, data))
 			else:
 				log.warn('Got some weird message %s' % data)
-		log.info('--Listening Connection closed by you--')
+	log.info('--Listening Connection closed by you--')
 
 	def send_junk(self):
 		junk = MACHINE_PROLOGUE + self.CryptoRef.encrypt_Txt_2_Obj_Str(JUNK_STRING)
@@ -115,9 +141,9 @@ class Chat(object):
 					self.lastMessage = txt_to_send
 					msg = PROLOGUE + encrypted_txt
 					self.listen_socket.sendto(msg, self.peer_Address)
-			except Exception, e:
+			except KeyboardInterrupt, e:
 				self.toClose.set()
-				encrypted_txt = self.CryptoRef.encrypt_Txt_2_Obj_Str('q')
+				encrypted_txt = self.CryptoRef.encrypt_Txt_2_Obj_Str('qaki')
 				msg = MACHINE_PROLOGUE + encrypted_txt
 				self.listen_socket.sendto(msg, self.peer_Address)
 				log.info('--Send Connection closed by YOU!--')
@@ -161,3 +187,22 @@ class Chat(object):
 		while not self.toClose.isSet():
 			self.listen_socket.sendto(b'KeepAlive', RANDOM_ADDRESS)
 			time.sleep(0.5)
+
+	def SendPhoneBook(self):
+		while not self.toClose.isSet():
+			PhoneBook_String=pickle.dumps(self.PhoneBook)
+			msg = MACHINE_PROLOGUE + self.CryptoRef.encrypt_Txt_2_Obj_Str('p'+PhoneBook_String)
+			self.listen_socket.sendto(msg, self.peer_Address)
+			time.sleep(3)
+	def UpdatePhoneBook(self,NewPhoneBook):
+		Copy={}  #Copy is a copy of the incoming dictionary without merging conflicts 
+		Copy.update(NewPhoneBook)
+		for n in NewPhoneBook:
+			if self.PhoneBook.has_key(n):
+				if NewPhoneBook[n].timestamp<self.PhoneBook[n].timestamp:
+					self.PhoneBook[n].timestamp=NewPhoneBook[n].timestamp
+				del Copy[n]
+		self.PhoneBook.update(Copy)
+
+
+

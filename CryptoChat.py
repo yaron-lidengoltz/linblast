@@ -26,6 +26,7 @@ class CryptoClass(object):
 		self.my_name = None
 		self.friend_name = None
 		self.M_Private_key = None
+		self.M_Public_key=None
 		self.F_Public_key = None
 
 	def test_flight(self, user):
@@ -39,6 +40,10 @@ class CryptoClass(object):
 		self.init_keys()
 
 	def init_keys(self):
+		try:
+			self.M_Public_key = RSA.importKey(open("public_" + self.my_name + "_key.pem", "r").read())
+		except BaseException:
+			log.error('import failed!, cant import your friends public key')
 		try:
 			self.M_Private_key = RSA.importKey(open("private_" + self.my_name + "_key.pem", "r").read())
 		except BaseException:
