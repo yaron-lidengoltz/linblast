@@ -100,7 +100,7 @@ class Chat(object):
 
 			if data.startswith(MACHINE_PROLOGUE):
 				data, sender = self.CryptoRef.decrypt_Obj_Str_2_Txt(data[3:], self)
-				if data == 'q':           #q=quit
+				if data.startswith('q'):           #q=quit
 					log.info('%s Asked to quit!' % sender)
 					break
 				if data.startswith('p'):         #p=phonebook
@@ -110,6 +110,7 @@ class Chat(object):
 					print self.PhoneBook
 				if data == JUNK_STRING:
 					continue
+
 
 			elif data.startswith(PROLOGUE):
 				data, sender = self.CryptoRef.decrypt_Obj_Str_2_Txt(data[3:], self)
@@ -143,7 +144,7 @@ class Chat(object):
 					self.listen_socket.sendto(msg, self.peer_Address)
 			except KeyboardInterrupt, e:
 				self.toClose.set()
-				encrypted_txt = self.CryptoRef.encrypt_Txt_2_Obj_Str('qaki')
+				encrypted_txt = self.CryptoRef.encrypt_Txt_2_Obj_Str('q')
 				msg = MACHINE_PROLOGUE + encrypted_txt
 				self.listen_socket.sendto(msg, self.peer_Address)
 				log.info('--Send Connection closed by YOU!--')
@@ -193,6 +194,7 @@ class Chat(object):
 			PhoneBook_String=pickle.dumps(self.PhoneBook)
 			msg = MACHINE_PROLOGUE + self.CryptoRef.encrypt_Txt_2_Obj_Str('p'+PhoneBook_String)
 			self.listen_socket.sendto(msg, self.peer_Address)
+			print self.CryptoRef.decrypt_Obj_Str_2_Txt(msg,self)
 			time.sleep(3)
 	def UpdatePhoneBook(self,NewPhoneBook):
 		Copy={}  #Copy is a copy of the incoming dictionary without merging conflicts 
@@ -202,7 +204,8 @@ class Chat(object):
 				if NewPhoneBook[n].timestamp<self.PhoneBook[n].timestamp:
 					self.PhoneBook[n].timestamp=NewPhoneBook[n].timestamp
 				del Copy[n]
-		self.PhoneBook.update(Copy)
+		if Copy.len()>0:
+			self.PhoneBook.update(Copy)
 
 
 
