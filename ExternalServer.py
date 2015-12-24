@@ -17,7 +17,7 @@ class ExternalServer(object):
 		self.listen_address = None
 		self.local_port = None
 		self.nat_type = None
-		self.my_ip = '10.169.106.179'#!_!_!_!_!_!_!_!_!_!_!_!_!_!Remember to change to your IP
+		self.my_ip = None
 		self.port = None
 		self.linsocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 

@@ -15,7 +15,7 @@ PROLOGUE = 'xxx'
 MACHINE_PROLOGUE = 'YYY'
 INIT_PROLOUGE='ZZZ'
 JUNK_STRING = 'hi'
-RANDOM_ADDRESS = ('8.8.8.8', 80)
+RANDOM_ADDRESS = ('8.8.8.7', 80)
 
 log = logging.getLogger(__name__)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -76,19 +76,16 @@ class Chat(object):
 		self.CryptoRef.init_chat()
 		self.User_Me.initME(self.CryptoRef.my_name,self.server.listen_address,self.CryptoRef.M_Public_key,time.time())
 		self.PhoneBook={self.User_Me.name:self.User_Me}
-		self.send_user_details_to_db()
-		self.get_phone_book_from_db()
+		#self.send_user_details_to_db()
+		#self.get_phone_book_from_db()
 		peer_ip = raw_input("Enter peer ip:")
 		port = int(raw_input("enter port to connect: "))
 		self.peer_Address = (peer_ip, port)
 		self.start_threads()
 
 	def start_threads(self):
-		self.InitiateChat(1)
-		self.InitiateChat(2)
 		self.junk_thread.start()
 		self.listen_thread.start()
-		self.SendPhoneBook_thread.start()
 		self.start_chat()
 
 
@@ -112,14 +109,16 @@ class Chat(object):
 				if data.startswith('p'):           #p=phonebook
 					log.info('%s sent you his phonebook!' % sender)
 					data=data[1:]                  #cutting the "p"
-					self.UpdatePhoneBook(pickle.loads(data))
-					print self.PhoneBook     
+					self.UpdatePhoneBook(pickle.loads(data))     
 				if data == RESEND_REQUEST_STRING:
 					log.info('%s asked for a resend' % sender)
 					self.resend_message()
 					continue
 
-
+			elif data.startswith(JUNK_PROLOGUE):
+				continue
+			elif data.startswith(INIT_PROLOUGE):
+				continue
 			elif data.startswith(PROLOGUE):
 				self.Change_key(1)
 				data, sender = self.CryptoRef.Decrypt_AES(data[3:],1)
@@ -141,6 +140,9 @@ class Chat(object):
 	def start_chat(self):
 		log.info('sending to: %s' % str(self.peer_Address))
 		log.info('--You can start chatting, press ctrl c to quit--')
+		self.InitiateChat()
+		time.sleep(2)
+		self.SendPhoneBook_thread.start()
 		while not self.toClose.isSet():
 			try:
 				txt_to_send = raw_input()
@@ -156,32 +158,33 @@ class Chat(object):
 				self.toClose.set()
 				log.info('--Send Connection closed by YOU!--')
 
-	def InitiateChat(self,number):
+	def InitiateChat(self):
 		got_answer=False
+		got_msg=False
 		data=''
-		if number==1:
-			msg =INIT_PROLOUGE+self.CryptoRef.Encrypt_RSA(str(self.CryptoRef.Init_Priority)+self.CryptoRef.AES_KEY+self.CryptoRef.AES_IV)
-		else:
-			msg =INIT_PROLOUGE+self.CryptoRef.Encrypt_RSA(str(self.CryptoRef.Init_Priority)+self.CryptoRef.AES_KEY2+self.CryptoRef.AES_IV2)
-		self.listen_socket.sendto(msg, self.peer_Address)
+		InitMsgThread=self.init_thread(self.Send_initiate_MSG,())
+		InitMsgThread.start()
 		while not got_answer:
-			while not data.startswith(INIT_PROLOUGE):
+			while not got_msg:
 				data, peer_address = self.listen_socket.recvfrom(BIG_BUFFER_SIZE)
+				if data.startswith(INIT_PROLOUGE):
+					got_msg=True
 			data,sender=self.CryptoRef.Decrypt_RSA(data[3:])                #cuts the proluge
 			PeerPriority=int(data[0:2])    #first 2 characters
-			PeerKey=data[2:18]             #next 16
-			PeerIv=data[18:34]             #other next 16
+			PeerKey=data[2:18]             #next 16       key-1
+			PeerIv=data[18:34]             #other next 16 iv-1
+			PeerKey2=data[34:50]           #other next 16 key-2
+			PeerIv2=data[50:66]            #other next 16 iv-2
 			if PeerPriority<self.CryptoRef.Init_Priority:
-				self.CryptoRef.Update_AES_Ref(PeerKey,PeerIv,number)
+				self.CryptoRef.Update_AES_Ref(PeerKey,PeerIv,1)
+				self.CryptoRef.Update_AES_Ref(PeerKey2,PeerIv2,2)
 				log.info('Peer key chosen') 
 			elif PeerPriority==self.CryptoRef.Init_Priority:
-				self.InitiateChat(1)
+				self.InitiateChat()
 			else:
-				log.info('My key chosen')
-			if number==1:	
-				print 'Key in cycle: '+self.CryptoRef.AES_KEY
-			else:
-				print 'Key 2 in cycle: '+self.CryptoRef.AES_KEY2
+				log.info('My key chosen')	
+			print 'Key in cycle: '+self.CryptoRef.AES_KEY
+			print 'Key 2 in cycle: '+self.CryptoRef.AES_KEY2
 			got_answer=True
 
 	def request_resend(self):
@@ -224,13 +227,13 @@ class Chat(object):
 	def keep_alive(self):
 		while not self.toClose.isSet():
 			self.listen_socket.sendto(b'KeepAlive', RANDOM_ADDRESS)
-			time.sleep(0.5)
+			time.sleep(0.2)
 
 	def SendPhoneBook(self):
 		while not self.toClose.isSet():
 			self.Char_INT='p'
 			self.Interrupt_Service()
-			time.sleep(3)
+			time.sleep(15)
 	def UpdatePhoneBook(self,NewPhoneBook):
 		Copy={}  #Copy is a copy of the incoming dictionary without merging conflicts 
 		Copy.update(NewPhoneBook)
@@ -270,5 +273,13 @@ class Chat(object):
 				self.listen_socket.sendto(JUNK_PROLOGUE+JUNK_STRING, self.peer_Address)
 				self.Char_INT=None
 			time.sleep(1)
+
+	def Send_initiate_MSG(self):
+		for i in range(30):
+			infokey=self.CryptoRef.AES_KEY+self.CryptoRef.AES_IV
+			infokey2=self.CryptoRef.AES_KEY2+self.CryptoRef.AES_IV2
+			msg =INIT_PROLOUGE+self.CryptoRef.Encrypt_RSA(str(self.CryptoRef.Init_Priority)+infokey+infokey2)
+			self.listen_socket.sendto(msg, self.peer_Address)
+			time.sleep(0.5)
 
 

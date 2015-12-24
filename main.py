@@ -2,7 +2,7 @@ import Chat
 from ExternalServer import ExternalServer
 
 ###########################################
-TEST = True
+TEST = False
 # in this case run in two different consoles
 # on the same machine first time
 # python main.py a
