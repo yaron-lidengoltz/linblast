@@ -3,6 +3,7 @@ import threading
 import time
 import cPickle as pickle
 import CryptoChat
+import AudioChat
 
 MAX_PORT_LENGTH = 5
 BUFFER_SIZE = 0x100
@@ -10,6 +11,7 @@ BIG_BUFFER_SIZE = 0x2048 * 2
 MAX_KEY_ROTATION=15
 
 RESEND_REQUEST_STRING = '^_^Resend^_^'  # a string that represents a request to resend
+VOICE_PROLOGUE='VVV'
 JUNK_PROLOGUE='www'
 PROLOGUE = 'xxx'
 MACHINE_PROLOGUE = 'YYY'
@@ -55,6 +57,8 @@ class Chat(object):
 		self.User_Me=User()
 		self.PhoneBook=None
 		self.Char_INT=None
+		self.AudioRef=AudioChat.ChatAudio()
+		self.VoiceOperation=False
 
 	def init_thread(self, method, args):
 		holder = threading.Thread(target=method, args=args)
@@ -90,6 +94,8 @@ class Chat(object):
 
 
 	def accept_requests(self):
+		Voice_Msg_Buffer=''
+		AddToBufferFlag=False
 		log.info('--Waiting for connection--')
 		while not self.toClose.isSet():
 			try:
@@ -109,21 +115,46 @@ class Chat(object):
 				if data.startswith('p'):           #p=phonebook
 					log.info('%s sent you his phonebook!' % sender)
 					data=data[1:]                  #cutting the "p"
-					self.UpdatePhoneBook(pickle.loads(data))     
+					self.UpdatePhoneBook(pickle.loads(data)) 
+					print self.PhoneBook    
 				if data == RESEND_REQUEST_STRING:
 					log.info('%s asked for a resend' % sender)
 					self.resend_message()
 					continue
 
-			elif data.startswith(JUNK_PROLOGUE):
-				continue
-			elif data.startswith(INIT_PROLOUGE):
-				continue
 			elif data.startswith(PROLOGUE):
 				self.Change_key(1)
 				data, sender = self.CryptoRef.Decrypt_AES(data[3:],1)
 				log.info('%s: %s' % (sender, data))
+
+			elif data.startswith(VOICE_PROLOGUE):
+				self.Change_key(1)
+				data, sender = self.CryptoRef.Decrypt_AES(data[3:],1)
+				if data=='start_record':
+					started=time.time()
+					print 'got audio'
+					AddToBufferFlag=True
+					continue
+				elif data=='stop_record':
+					print 'audio finished'
+					AddToBufferFlag=False
+					self.AudioRef.Play(Voice_Msg_Buffer)
+					Voice_Msg_Buffer=''
+					continue
+				if AddToBufferFlag:
+					Voice_Msg_Buffer+=data
+					continue
+
+				ended=time.time()
+				if (ended-started)>7:
+					AddToBufferFlag=False
+					self.AudioRef.Play(Voice_Msg_Buffer)
+					Voice_Msg_Buffer=''
+
+
 			elif data.startswith(JUNK_PROLOGUE):
+				continue
+			elif data.startswith(INIT_PROLOUGE):
 				continue
 			else:
 				log.warn('Got some weird message %s' % data)
@@ -147,11 +178,34 @@ class Chat(object):
 			try:
 				txt_to_send = raw_input()
 				if txt_to_send != '':
-					self.Change_key(1)
-					encrypted_txt = self.CryptoRef.Encrypt_AES(txt_to_send,1)
-					self.lastMessage = txt_to_send
-					msg = PROLOGUE + encrypted_txt
-					self.listen_socket.sendto(msg, self.peer_Address)
+					if txt_to_send=='record':
+						self.VoiceOperation=True
+						frames=self.AudioRef.Record()
+
+						self.Change_key(1)
+						encrypted_txt = self.CryptoRef.Encrypt_AES('start_record',1)
+						msg = VOICE_PROLOGUE + encrypted_txt
+						self.listen_socket.sendto(msg, self.peer_Address)
+						FrameCount = len(frames)
+
+						for i in range(0,FrameCount):
+							txt_to_send=str(frames[i])
+							self.Change_key(1)
+							encrypted_txt = self.CryptoRef.Encrypt_AES(txt_to_send,1)
+							msg = VOICE_PROLOGUE + encrypted_txt
+							self.listen_socket.sendto(msg, self.peer_Address)
+
+						self.Change_key(1)
+						encrypted_txt = self.CryptoRef.Encrypt_AES('stop_record',1)
+						msg = VOICE_PROLOGUE + encrypted_txt
+						self.listen_socket.sendto(msg, self.peer_Address)
+					else:
+						self.Change_key(1)
+						encrypted_txt = self.CryptoRef.Encrypt_AES(txt_to_send,1)
+						self.lastMessage = txt_to_send
+						msg = PROLOGUE + encrypted_txt
+						self.listen_socket.sendto(msg, self.peer_Address)
+						self.VoiceOperation=False
 			except KeyboardInterrupt, e:
 				self.Char_INT='q'
 				self.Interrupt_Service()
@@ -262,7 +316,7 @@ class Chat(object):
 				self.listen_socket.sendto(msg, self.peer_Address)
 				self.Char_INT=None
 
-			if self.Char_INT=='p':
+			if self.Char_INT=='p' and self.VoiceOperation==False:
 				self.Change_key(2)
 				PhoneBook_String=pickle.dumps(self.PhoneBook)
 				msg = MACHINE_PROLOGUE + self.CryptoRef.Encrypt_AES('p'+PhoneBook_String,2)
