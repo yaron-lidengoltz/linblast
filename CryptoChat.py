@@ -119,3 +119,9 @@ class CryptoClass(object):
 		st=st[1:]
 		st+=a
 		return st
+	def InventAdress(self):
+		Adressess=['8.8.8.7','8.8.4.7','8.8.4.6','8.8.4.3','8.8.2.3']
+		return (Adressess[randint(0,4)],80)
+
+	def PrintKey(self,KeyString):
+		return base64.b64encode(KeyString)
